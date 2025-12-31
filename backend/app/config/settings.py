@@ -7,9 +7,6 @@ class Settings(BaseSettings):
     Pydantic automatically loads .env - no need for load_dotenv()!
     """
     
-    # Database
-    DATABASE_URL: str
-    
     # Supabase
     SUPABASE_URL: str
     SUPABASE_SERVICE_ROLE_KEY: str
