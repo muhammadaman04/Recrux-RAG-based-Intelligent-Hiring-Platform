@@ -1,7 +1,32 @@
-import { Link } from 'react-router-dom'
+import { useState, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { AuthContext } from '../context/AuthContext'
 
 const Login = () => {
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const { login } = useContext(AuthContext)
+    const navigate = useNavigate()
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setError('')
+        setLoading(true)
+
+        try {
+            await login(email, password)
+            navigate('/dashboard')
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Login failed. Please check your credentials.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center px-6 py-12">
             <motion.div
@@ -25,7 +50,13 @@ const Login = () => {
                         Sign in to continue to your dashboard
                     </p>
 
-                    <form className="space-y-6">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
+                            <p className="text-sm">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Email Address
@@ -33,6 +64,9 @@ const Login = () => {
                             <input
                                 type="email"
                                 placeholder="you@company.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                             />
                         </div>
@@ -44,6 +78,9 @@ const Login = () => {
                             <input
                                 type="password"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                             />
                         </div>
@@ -60,9 +97,10 @@ const Login = () => {
 
                         <button
                             type="submit"
-                            className="w-full bg-gradient-primary text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                            disabled={loading}
+                            className="w-full bg-gradient-primary text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Sign In
+                            {loading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
 

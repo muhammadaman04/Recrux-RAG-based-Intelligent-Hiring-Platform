@@ -1,7 +1,34 @@
-import { Link } from 'react-router-dom'
+import { useState, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { AuthContext } from '../context/AuthContext'
 
 const SignUp = () => {
+    const [companyName, setCompanyName] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [fullName, setFullName] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const { register } = useContext(AuthContext)
+    const navigate = useNavigate()
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setError('')
+        setLoading(true)
+
+        try {
+            await register(companyName, email, password, fullName)
+            navigate('/dashboard')
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Registration failed. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center px-6 py-12">
             <motion.div
@@ -25,7 +52,13 @@ const SignUp = () => {
                         Start screening smarter today
                     </p>
 
-                    <form className="space-y-6">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
+                            <p className="text-sm">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Company Name
@@ -33,6 +66,9 @@ const SignUp = () => {
                             <input
                                 type="text"
                                 placeholder="TechFlow Inc."
+                                value={companyName}
+                                onChange={(e) => setCompanyName(e.target.value)}
+                                required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                             />
                         </div>
@@ -44,6 +80,9 @@ const SignUp = () => {
                             <input
                                 type="email"
                                 placeholder="hr@company.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                             />
                         </div>
@@ -55,6 +94,10 @@ const SignUp = () => {
                             <input
                                 type="password"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength="8"
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                             />
                             <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
@@ -75,9 +118,10 @@ const SignUp = () => {
 
                         <button
                             type="submit"
-                            className="w-full bg-gradient-primary text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                            disabled={loading}
+                            className="w-full bg-gradient-primary text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Create Account
+                            {loading ? 'Creating Account...' : 'Create Account'}
                         </button>
                     </form>
 
