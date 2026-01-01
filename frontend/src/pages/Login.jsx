@@ -37,7 +37,6 @@ const Login = () => {
             >
                 {/* Logo */}
                 <Link to="/" className="flex items-center justify-center gap-3 mb-8">
-                    <span className="text-5xl">🎯</span>
                     <span className="text-3xl font-extrabold text-gradient">Recrux</span>
                 </Link>
 

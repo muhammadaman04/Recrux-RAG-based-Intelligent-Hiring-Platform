@@ -5,6 +5,8 @@ import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
+import Jobs from './pages/Jobs'
+import CreateJob from './pages/CreateJob'
 import './index.css'
 
 function App() {
@@ -25,6 +27,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/jobs" element={
+            <ProtectedRoute><Jobs /></ProtectedRoute>
+          } />
+
+          <Route path="/jobs/create" element={
+            <ProtectedRoute><CreateJob /></ProtectedRoute>
+          } />
         </Routes>
       </Router>
     </AuthProvider>

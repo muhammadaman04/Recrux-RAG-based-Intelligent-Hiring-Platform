@@ -1,49 +1,36 @@
-import { useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useContext, useState, useEffect } from 'react'
 import { AuthContext } from '../context/AuthContext'
+import DashboardLayout from '../components/DashboardLayout'
+import api from '../api/axios'
 
 const Dashboard = () => {
-    const { user, logout } = useContext(AuthContext)
-    const navigate = useNavigate()
+    const { user } = useContext(AuthContext)
+    const [stats, setStats] = useState({
+        active_jobs: 0,
+        total_candidates: 0,
+        shortlisted: 0
+    })
+    const [loading, setLoading] = useState(true)
 
-    const handleLogout = () => {
-        logout()
-        navigate('/login')
+    useEffect(() => {
+        fetchStats()
+    }, [])
+
+    const fetchStats = async () => {
+        try {
+            const response = await api.get('/dashboard/stats')
+            setStats(response.data)
+        } catch (error) {
+            console.error('Failed to fetch stats', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Navbar */}
-            <nav className="bg-white shadow-md">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <span className="text-3xl">🎯</span>
-                        <span className="text-2xl font-extrabold text-gradient">Recrux</span>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500">Welcome back,</p>
-                            <p className="font-semibold text-gray-900">{user?.email}</p>
-                        </div>
-                        <button
-                            onClick={handleLogout}
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
-            {/* Dashboard Content */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
-                <h1 className="text-4xl font-extrabold mb-2">
-                    Welcome to Your Dashboard
-                </h1>
-                <p className="text-gray-600 mb-8">
-                    Manage your recruitment process with AI-powered tools
-                </p>
+        <DashboardLayout>
+            <div>
+                <h2 className="text-2xl font-bold mb-6">Dashboard Overview</h2>
 
                 {/* Stats Cards */}
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -52,8 +39,18 @@ const Dashboard = () => {
                             <h3 className="text-lg font-bold text-gray-700">Active Jobs</h3>
                             <span className="text-3xl">💼</span>
                         </div>
-                        <p className="text-4xl font-extrabold text-primary-600">0</p>
-                        <p className="text-sm text-gray-500 mt-1">No jobs posted yet</p>
+                        {loading ? (
+                            <div className="animate-pulse">
+                                <div className="h-10 bg-gray-200 rounded w-16"></div>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-4xl font-extrabold text-primary-600">{stats.active_jobs}</p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    {stats.active_jobs === 0 ? 'No jobs posted yet' : 'Currently hiring'}
+                                </p>
+                            </>
+                        )}
                     </div>
 
                     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
@@ -61,8 +58,18 @@ const Dashboard = () => {
                             <h3 className="text-lg font-bold text-gray-700">Total Candidates</h3>
                             <span className="text-3xl">👥</span>
                         </div>
-                        <p className="text-4xl font-extrabold text-primary-600">0</p>
-                        <p className="text-sm text-gray-500 mt-1">Start screening resumes</p>
+                        {loading ? (
+                            <div className="animate-pulse">
+                                <div className="h-10 bg-gray-200 rounded w-16"></div>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-4xl font-extrabold text-primary-600">{stats.total_candidates}</p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    {stats.total_candidates === 0 ? 'Start screening resumes' : 'Applications received'}
+                                </p>
+                            </>
+                        )}
                     </div>
 
                     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
@@ -70,8 +77,18 @@ const Dashboard = () => {
                             <h3 className="text-lg font-bold text-gray-700">Shortlisted</h3>
                             <span className="text-3xl">⭐</span>
                         </div>
-                        <p className="text-4xl font-extrabold text-primary-600">0</p>
-                        <p className="text-sm text-gray-500 mt-1">Top candidates</p>
+                        {loading ? (
+                            <div className="animate-pulse">
+                                <div className="h-10 bg-gray-200 rounded w-16"></div>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-4xl font-extrabold text-primary-600">{stats.shortlisted}</p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    {stats.shortlisted === 0 ? 'Top candidates' : 'Ready for interview'}
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -94,24 +111,13 @@ const Dashboard = () => {
                         <div>
                             <p className="text-sm text-gray-500 mb-1">Account Status</p>
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                                ✓ Active
+                                Active
                             </span>
                         </div>
                     </div>
                 </div>
-
-                {/* Quick Actions */}
-                <div className="mt-8 bg-gradient-to-r from-primary-600 to-primary-500 p-8 rounded-xl text-white">
-                    <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
-                    <p className="mb-6 text-primary-100">
-                        Create your first job posting and start screening candidates with AI
-                    </p>
-                    <button className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition">
-                        Create Job Posting
-                    </button>
-                </div>
             </div>
-        </div>
+        </DashboardLayout>
     )
 }
 

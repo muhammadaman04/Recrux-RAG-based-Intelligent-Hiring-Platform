@@ -39,7 +39,6 @@ const SignUp = () => {
             >
                 {/* Logo */}
                 <Link to="/" className="flex items-center justify-center gap-3 mb-8">
-                    <span className="text-5xl">🎯</span>
                     <span className="text-3xl font-extrabold text-gradient">Recrux</span>
                 </Link>
 
@@ -137,7 +136,6 @@ const SignUp = () => {
 
                 <div className="mt-8 bg-primary-50 rounded-xl p-4 border border-primary-200">
                     <div className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-2xl">✨</span>
                         <div>
                             <p className="font-semibold text-gray-900">Start your 14-day free trial</p>
                             <p className="text-gray-600">No credit card required • Cancel anytime</p>

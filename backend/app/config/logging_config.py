@@ -19,8 +19,8 @@ def setup_logging():
         handlers=[
             # Console handler
             logging.StreamHandler(sys.stdout),
-            # File handler
-            logging.FileHandler(log_dir / "recrux.log")
+            # File handler with UTF-8 encoding
+            logging.FileHandler(log_dir / "recrux.log", encoding='utf-8')
         ]
     )
     
