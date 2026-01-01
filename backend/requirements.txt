@@ -8,3 +8,5 @@ python-multipart==0.0.20
 pydantic==2.10.5
 pydantic-settings==2.7.1
 boto3==1.35.94
+langchain-groq==0.2.1
+langchain==0.3.13

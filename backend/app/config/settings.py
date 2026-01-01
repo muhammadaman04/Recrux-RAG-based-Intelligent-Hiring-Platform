@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     
+    # Groq LLM
+    GROQ_API_KEY: str
+    
     # CORS
     ALLOWED_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
     
