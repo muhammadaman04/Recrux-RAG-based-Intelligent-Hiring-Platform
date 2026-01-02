@@ -1,9 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useState } from 'react'
+import { useSidebar } from '../context/SidebarContext'
 
 const Sidebar = () => {
     const location = useLocation()
-    const [isCollapsed, setIsCollapsed] = useState(false)
+    const { isCollapsed, setIsCollapsed } = useSidebar()
 
     const navigation = [
         { name: 'Dashboard', href: '/dashboard', icon: '📊' },

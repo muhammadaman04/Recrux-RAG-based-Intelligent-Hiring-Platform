@@ -1,37 +1,13 @@
-import { useContext, useState, useEffect } from 'react'
+import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
+import { useSidebar } from '../context/SidebarContext'
 import Sidebar from './Sidebar'
 
 const DashboardLayout = ({ children }) => {
     const { user, logout } = useContext(AuthContext)
+    const { isCollapsed } = useSidebar()
     const navigate = useNavigate()
-    const [sidebarWidth, setSidebarWidth] = useState(256) // 64 * 4 = 256px (w-64)
-
-    useEffect(() => {
-        // Listen for sidebar width changes
-        const handleResize = () => {
-            const sidebar = document.querySelector('[class*="w-"]')
-            if (sidebar) {
-                setSidebarWidth(sidebar.offsetWidth)
-            }
-        }
-
-        handleResize()
-        window.addEventListener('resize', handleResize)
-
-        // Use MutationObserver to detect sidebar width changes
-        const observer = new MutationObserver(handleResize)
-        const sidebar = document.querySelector('[class*="w-"]')
-        if (sidebar) {
-            observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] })
-        }
-
-        return () => {
-            window.removeEventListener('resize', handleResize)
-            observer.disconnect()
-        }
-    }, [])
 
     const handleLogout = () => {
         logout()
@@ -43,8 +19,8 @@ const DashboardLayout = ({ children }) => {
             <Sidebar />
 
             <div
-                className="flex-1 transition-all duration-300"
-                style={{ marginLeft: `${sidebarWidth}px` }}
+                className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'
+                    }`}
             >
                 {/* Top Bar */}
                 <div className="bg-white border-b border-gray-200 px-8 py-4">

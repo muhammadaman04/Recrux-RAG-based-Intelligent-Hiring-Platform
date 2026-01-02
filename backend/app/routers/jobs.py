@@ -111,3 +111,77 @@ def get_job(
         raise HTTPException(404, "Job not found")
     
     return result.data[0]
+
+@router.put("/{job_id}", response_model=JobResponse)
+def update_job(
+    job_id: int,
+    data: JobCreate,
+    db: Client = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Update job posting"""
+    tenant_id = current_user["tenant_id"]
+    
+    logger.info(f"Updating job {job_id} for tenant {tenant_id}")
+    
+    # Check if job exists and belongs to tenant
+    existing = db.table("job_postings")\
+        .select("*")\
+        .eq("id", job_id)\
+        .eq("tenant_id", tenant_id)\
+        .execute()
+    
+    if not existing.data:
+        raise HTTPException(404, "Job not found")
+    
+    # Update job
+    result = db.table("job_postings")\
+        .update({
+            "title": data.title,
+            "description": data.description,
+            "requirements": data.requirements,
+            "must_have_skills": data.must_have_skills,
+            "nice_to_have_skills": data.nice_to_have_skills,
+            "min_experience": data.min_experience
+        })\
+        .eq("id", job_id)\
+        .eq("tenant_id", tenant_id)\
+        .execute()
+    
+    if not result.data:
+        logger.error(f"Failed to update job {job_id}")
+        raise HTTPException(500, "Failed to update job")
+    
+    logger.info(f"Job {job_id} updated successfully")
+    return result.data[0]
+
+@router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_job(
+    job_id: int,
+    db: Client = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete job posting"""
+    tenant_id = current_user["tenant_id"]
+    
+    logger.info(f"Deleting job {job_id} for tenant {tenant_id}")
+    
+    # Check if job exists and belongs to tenant
+    existing = db.table("job_postings")\
+        .select("*")\
+        .eq("id", job_id)\
+        .eq("tenant_id", tenant_id)\
+        .execute()
+    
+    if not existing.data:
+        raise HTTPException(404, "Job not found")
+    
+    # Delete job
+    result = db.table("job_postings")\
+        .delete()\
+        .eq("id", job_id)\
+        .eq("tenant_id", tenant_id)\
+        .execute()
+    
+    logger.info(f"Job {job_id} deleted successfully")
+    return None

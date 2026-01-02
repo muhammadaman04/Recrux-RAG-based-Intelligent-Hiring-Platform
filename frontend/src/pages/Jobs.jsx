@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import DashboardLayout from '../components/DashboardLayout'
 import { AuthContext } from '../context/AuthContext'
@@ -8,6 +8,7 @@ const Jobs = () => {
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
     const { user } = useContext(AuthContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         fetchJobs()
@@ -22,6 +23,26 @@ const Jobs = () => {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleDelete = async (jobId, jobTitle) => {
+        if (!window.confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
+            return
+        }
+
+        try {
+            await api.delete(`/jobs/${jobId}`)
+            // Remove job from state
+            setJobs(jobs.filter(job => job.id !== jobId))
+            alert('Job deleted successfully')
+        } catch (error) {
+            console.error('Failed to delete job', error)
+            alert('Failed to delete job. Please try again.')
+        }
+    }
+
+    const handleEdit = (jobId) => {
+        navigate(`/jobs/${jobId}/edit`)
     }
 
     return (
@@ -59,13 +80,37 @@ const Jobs = () => {
                     {jobs.map((job) => (
                         <div key={job.id} className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition">
                             <div className="flex justify-between items-start mb-4">
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-xl font-bold text-gray-900 mb-2">{job.title}</h3>
                                     <p className="text-gray-600 line-clamp-2">{job.description}</p>
                                 </div>
-                                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
-                                    {job.status}
-                                </span>
+                                <div className="flex items-center gap-3 ml-4">
+                                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                                        {job.status}
+                                    </span>
+
+                                    {/* Edit Button */}
+                                    <button
+                                        onClick={() => handleEdit(job.id)}
+                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                        title="Edit job"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+
+                                    {/* Delete Button */}
+                                    <button
+                                        onClick={() => handleDelete(job.id, job.title)}
+                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        title="Delete job"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex flex-wrap gap-2 mb-4">
@@ -81,10 +126,23 @@ const Jobs = () => {
                                 )}
                             </div>
 
-                            <div className="flex gap-6 text-sm text-gray-500">
-                                <span>Created: {new Date(job.created_at).toLocaleDateString()}</span>
-                                <span>Experience: {job.min_experience}+ years</span>
-                                <span>Skills: {job.must_have_skills.length} required</span>
+                            <div className="flex justify-between items-center">
+                                <div className="flex gap-6 text-sm text-gray-500">
+                                    <span>Created: {new Date(job.created_at).toLocaleDateString()}</span>
+                                    <span>Experience: {job.min_experience}+ years</span>
+                                    <span>Skills: {job.must_have_skills.length} required</span>
+                                </div>
+
+                                {/* Upload Resumes Button */}
+                                <Link
+                                    to={`/jobs/${job.id}/upload`}
+                                    className="bg-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition flex items-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    Upload Resumes
+                                </Link>
                             </div>
                         </div>
                     ))}
