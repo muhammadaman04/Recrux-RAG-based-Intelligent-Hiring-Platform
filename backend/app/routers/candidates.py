@@ -90,12 +90,11 @@ async def upload_resumes(
             # Step 4: Create candidate record
             candidate = db.table("candidates").insert({
                 "tenant_id": tenant_id,
-                "job_id": job_id,
+                "job_posting_id": job_id,
                 "name": parsed_data.get("name", "Unknown"),
                 "email": parsed_data.get("email"),
                 "phone": parsed_data.get("phone"),
                 "location": parsed_data.get("location"),
-                "resume_url": f"uploaded/{resume_file.filename}",  # TODO: Upload to Supabase Storage
                 "resume_text": resume_text,
                 "parsed_data": parsed_data,
                 "match_score": evaluation["overall_score"],
@@ -152,7 +151,7 @@ async def get_job_candidates(
     
     candidates = db.table("candidates")\
         .select("*")\
-        .eq("job_id", job_id)\
+        .eq("job_posting_id", job_id)\
         .eq("tenant_id", tenant_id)\
         .order("match_score", desc=True)\
         .execute()

@@ -32,7 +32,10 @@ const UploadResumes = () => {
 
     const handleFileChange = (e) => {
         const selectedFiles = Array.from(e.target.files)
-        setFiles(selectedFiles)
+        // Append new files to existing ones instead of replacing
+        setFiles(prevFiles => [...prevFiles, ...selectedFiles])
+        // Clear the input so the same file can be selected again if needed
+        e.target.value = ''
     }
 
     const handleRemoveFile = (index) => {
@@ -242,8 +245,8 @@ const UploadResumes = () => {
                                 <div
                                     key={idx}
                                     className={`p-3 rounded border ${result.status === 'success'
-                                            ? 'bg-green-50 border-green-200'
-                                            : 'bg-red-50 border-red-200'
+                                        ? 'bg-green-50 border-green-200'
+                                        : 'bg-red-50 border-red-200'
                                         }`}
                                 >
                                     <div className="flex justify-between items-center">

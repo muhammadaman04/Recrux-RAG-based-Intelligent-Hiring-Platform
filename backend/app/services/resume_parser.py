@@ -13,7 +13,7 @@ class ResumeParser:
     def __init__(self):
         self.llm = ChatGroq(
             api_key=settings.GROQ_API_KEY,
-            model="llama-3.1-70b-versatile",
+            model="openai/gpt-oss-20b",
             temperature=0
         )
     

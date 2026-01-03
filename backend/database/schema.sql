@@ -50,25 +50,45 @@ CREATE INDEX idx_job_postings_tenant ON job_postings(tenant_id, status);
 CREATE INDEX idx_job_postings_created_at ON job_postings(created_at DESC);
 
 -- ============================================
--- 4. CANDIDATES TABLE
+-- 4. CANDIDATES TABLE (UPDATED FOR AI PARSING)
 -- ============================================
 CREATE TABLE candidates (
     id SERIAL PRIMARY KEY,
     tenant_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
     job_posting_id INTEGER REFERENCES job_postings(id) ON DELETE CASCADE,
+    
+    -- Personal Info (from AI parsing)
     name VARCHAR(255),
     email VARCHAR(255),
     phone VARCHAR(50),
-    resume_url TEXT,
+    location VARCHAR(255),
+    
+    -- Resume Data (text only, no file storage)
+    resume_text TEXT,
     parsed_data JSONB,
+    
+    -- AI Scoring
     match_score FLOAT,
+    skills_matched TEXT[],
+    skills_missing TEXT[],
+    experience_years INTEGER,
+    
+    -- AI Evaluation
+    ai_evaluation JSONB,
     ai_summary TEXT,
+    strengths TEXT[],
+    concerns TEXT[],
+    recommendation VARCHAR(50),
+    
+    -- Status
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX idx_candidates_tenant_job ON candidates(tenant_id, job_posting_id);
 CREATE INDEX idx_candidates_match_score ON candidates(match_score DESC);
+CREATE INDEX idx_candidates_status ON candidates(status);
+CREATE INDEX idx_candidates_recommendation ON candidates(recommendation);
 
 -- ============================================
 -- 5. INTERVIEW QUESTIONS TABLE
