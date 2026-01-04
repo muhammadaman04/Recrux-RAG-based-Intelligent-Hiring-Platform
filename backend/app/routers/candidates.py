@@ -10,6 +10,8 @@ from app.utils.jwt import decode_token
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.resume_parser import resume_parser
 from app.services.scoring_service import scoring_service
+from app.services.embedding_service import embedding_service
+from app.services.pinecone_service import pinecone_service
 
 router = APIRouter()
 security = HTTPBearer()
@@ -87,7 +89,11 @@ async def upload_resumes(
                 job_requirements
             )
             
-            # Step 4: Create candidate record
+            # Step 4: Generate embedding for vector search
+            logger.info(f"Generating embedding for {parsed_data.get('name', 'Unknown')}")
+            embedding = embedding_service.generate_embedding(resume_text)
+            
+            # Step 5: Create candidate record
             candidate = db.table("candidates").insert({
                 "tenant_id": tenant_id,
                 "job_posting_id": job_id,
@@ -108,13 +114,36 @@ async def upload_resumes(
                 "status": "screened"
             }).execute()
             
+            candidate_id = candidate.data[0]["id"]
+            
+            # Step 6: Store embedding in Pinecone
+            pinecone_success = pinecone_service.upsert_resume(
+                candidate_id=candidate_id,
+                embedding=embedding,
+                metadata={
+                    "tenant_id": tenant_id,
+                    "job_posting_id": int(job_id),
+                    "name": parsed_data.get("name", "Unknown"),
+                    "skills": parsed_data.get("skills", [])[:10],  # Limit to 10 skills
+                    "experience_years": parsed_data.get("experience_years", 0),
+                    "match_score": evaluation["overall_score"],
+                    "recommendation": evaluation["recommendation"]
+                }
+            )
+            
+            if pinecone_success:
+                logger.info(f"✅ Stored embedding in Pinecone for candidate {candidate_id}")
+            else:
+                logger.warning(f"⚠️ Failed to store embedding in Pinecone for candidate {candidate_id}")
+            
             results.append({
                 "filename": resume_file.filename,
-                "candidate_id": candidate.data[0]["id"],
+                "candidate_id": candidate_id,
                 "name": parsed_data.get("name", "Unknown"),
                 "score": evaluation["overall_score"],
                 "recommendation": evaluation["recommendation"],
-                "status": "success"
+                "status": "success",
+                "pinecone_stored": pinecone_success
             })
             success_count += 1
             

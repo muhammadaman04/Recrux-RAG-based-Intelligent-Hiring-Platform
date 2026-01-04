@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
 
 class Settings(BaseSettings):
     """
@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     
     # Groq LLM
     GROQ_API_KEY: str
+    
+    # Pinecone Configuration
+    PINECONE_API_KEY: Optional[str] = None
+    PINECONE_ENVIRONMENT: str = "us-east-1-aws"
+    PINECONE_INDEX_NAME: str = "resume-embeddings"
     
     # CORS
     ALLOWED_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]

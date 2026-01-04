@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext'
 
 const Jobs = () => {
     const [jobs, setJobs] = useState([])
+    const [candidateCounts, setCandidateCounts] = useState({})
     const [loading, setLoading] = useState(true)
     const { user } = useContext(AuthContext)
     const navigate = useNavigate()
@@ -17,7 +18,23 @@ const Jobs = () => {
     const fetchJobs = async () => {
         try {
             const response = await api.get('/jobs')
-            setJobs(response.data)
+            const jobsData = response.data
+            setJobs(jobsData)
+
+            // Fetch candidate count for each job
+            const counts = {}
+            await Promise.all(
+                jobsData.map(async (job) => {
+                    try {
+                        const candidatesResponse = await api.get(`/candidates/jobs/${job.id}/candidates`)
+                        counts[job.id] = candidatesResponse.data.total || 0
+                    } catch (error) {
+                        console.error(`Failed to fetch candidates for job ${job.id}`, error)
+                        counts[job.id] = 0
+                    }
+                })
+            )
+            setCandidateCounts(counts)
         } catch (error) {
             console.error('Failed to fetch jobs', error)
         } finally {
@@ -131,18 +148,42 @@ const Jobs = () => {
                                     <span>Created: {new Date(job.created_at).toLocaleDateString()}</span>
                                     <span>Experience: {job.min_experience}+ years</span>
                                     <span>Skills: {job.must_have_skills.length} required</span>
+
+                                    {/* Candidate Count Badge */}
+                                    <span className="flex items-center gap-1">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span className="font-semibold text-primary-600">
+                                            {candidateCounts[job.id] || 0} candidates
+                                        </span>
+                                    </span>
                                 </div>
 
-                                {/* Upload Resumes Button */}
-                                <Link
-                                    to={`/jobs/${job.id}/upload`}
-                                    className="bg-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition flex items-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                    </svg>
-                                    Upload Resumes
-                                </Link>
+                                {/* Action Buttons */}
+                                <div className="flex gap-3">
+                                    {/* View Candidates Button */}
+                                    <Link
+                                        to={`/jobs/${job.id}/candidates`}
+                                        className="bg-white border-2 border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-semibold hover:bg-primary-50 transition flex items-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        View Candidates
+                                    </Link>
+
+                                    {/* Upload Resumes Button */}
+                                    <Link
+                                        to={`/jobs/${job.id}/upload`}
+                                        className="bg-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition flex items-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                        Upload Resumes
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     ))}
