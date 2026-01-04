@@ -239,3 +239,47 @@ async def update_candidate_status(
         "candidate_id": candidate_id,
         "status": new_status
     }
+
+@router.delete("/{candidate_id}")
+async def delete_candidate(
+    candidate_id: int,
+    db: Client = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Delete candidate from both Supabase and Pinecone
+    
+    This permanently removes the candidate from the system.
+    """
+    tenant_id = current_user["tenant_id"]
+    
+    try:
+        # Delete from Supabase
+        result = db.table("candidates")\
+            .delete()\
+            .eq("id", candidate_id)\
+            .eq("tenant_id", tenant_id)\
+            .execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Candidate not found")
+        
+        # Delete from Pinecone
+        pinecone_deleted = pinecone_service.delete_resume(candidate_id)
+        
+        if pinecone_deleted:
+            logger.info(f"✅ Deleted candidate {candidate_id} from both Supabase and Pinecone")
+        else:
+            logger.warning(f"⚠️ Deleted candidate {candidate_id} from Supabase, but Pinecone deletion failed")
+        
+        return {
+            "message": "Candidate deleted successfully",
+            "candidate_id": candidate_id,
+            "deleted_from_pinecone": pinecone_deleted
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting candidate {candidate_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

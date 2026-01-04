@@ -95,7 +95,18 @@ class ScoringService:
             logger.info(f"Scoring candidate: {candidate_name} for {job_title}")
             
             response = self.llm.invoke([HumanMessage(content=prompt)])
-            evaluation = json.loads(response.content)
+            
+            # Strip markdown code blocks if present
+            content = response.content.strip()
+            if content.startswith("```json"):
+                content = content[7:]  # Remove ```json
+            if content.startswith("```"):
+                content = content[3:]  # Remove ```
+            if content.endswith("```"):
+                content = content[:-3]  # Remove trailing ```
+            content = content.strip()
+            
+            evaluation = json.loads(content)
             
             logger.info(f"Score: {evaluation['overall_score']}/100 - {evaluation['recommendation']}")
             
