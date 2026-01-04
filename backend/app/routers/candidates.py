@@ -117,17 +117,22 @@ async def upload_resumes(
             candidate_id = candidate.data[0]["id"]
             
             # Step 6: Store embedding in Pinecone
+            # Prepare metadata (Pinecone doesn't accept null values)
+            skills_list = parsed_data.get("skills", [])
+            if skills_list:
+                skills_list = skills_list[:10]  # Limit to 10 skills
+            
             pinecone_success = pinecone_service.upsert_resume(
                 candidate_id=candidate_id,
                 embedding=embedding,
                 metadata={
                     "tenant_id": tenant_id,
                     "job_posting_id": int(job_id),
-                    "name": parsed_data.get("name", "Unknown"),
-                    "skills": parsed_data.get("skills", [])[:10],  # Limit to 10 skills
-                    "experience_years": parsed_data.get("experience_years", 0),
-                    "match_score": evaluation["overall_score"],
-                    "recommendation": evaluation["recommendation"]
+                    "name": parsed_data.get("name") or "Unknown",
+                    "skills": skills_list if skills_list else ["none"],
+                    "experience_years": parsed_data.get("experience_years") or 0,
+                    "match_score": float(evaluation["overall_score"]),
+                    "recommendation": evaluation.get("recommendation") or "pending"
                 }
             )
             
@@ -178,6 +183,9 @@ async def get_job_candidates(
     """Get all candidates for a specific job"""
     tenant_id = current_user["tenant_id"]
     
+    # Get job title
+    job = db.table("job_postings").select("title").eq("id", job_id).eq("tenant_id", tenant_id).single().execute()
+    
     candidates = db.table("candidates")\
         .select("*")\
         .eq("job_posting_id", job_id)\
@@ -187,6 +195,47 @@ async def get_job_candidates(
     
     return {
         "job_id": job_id,
+        "job_title": job.data["title"] if job.data else "Job Candidates",
         "total": len(candidates.data),
         "candidates": candidates.data
+    }
+
+@router.patch("/{candidate_id}/status")
+async def update_candidate_status(
+    candidate_id: int,
+    status_update: dict,
+    db: Client = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update candidate status (shortlisted, rejected, etc.)
+    
+    Body: {"status": "shortlisted" | "rejected" | "screened"}
+    """
+    tenant_id = current_user["tenant_id"]
+    
+    new_status = status_update.get("status")
+    
+    if not new_status:
+        raise HTTPException(status_code=400, detail="Status is required")
+    
+    if new_status not in ["shortlisted", "rejected", "screened"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    # Update candidate status
+    result = db.table("candidates")\
+        .update({"status": new_status})\
+        .eq("id", candidate_id)\
+        .eq("tenant_id", tenant_id)\
+        .execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    logger.info(f"Updated candidate {candidate_id} status to {new_status}")
+    
+    return {
+        "message": f"Candidate status updated to {new_status}",
+        "candidate_id": candidate_id,
+        "status": new_status
     }

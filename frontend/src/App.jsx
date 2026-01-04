@@ -10,6 +10,7 @@ import Jobs from './pages/Jobs'
 import CreateJob from './pages/CreateJob'
 import EditJob from './pages/EditJob'
 import UploadResumes from './pages/UploadResumes'
+import Candidates from './pages/Candidates'
 import './index.css'
 
 function App() {
@@ -40,6 +41,10 @@ function App() {
 
             <Route path="/jobs/:jobId/upload" element={
               <ProtectedRoute><UploadResumes /></ProtectedRoute>
+            } />
+
+            <Route path="/jobs/:jobId/candidates" element={
+              <ProtectedRoute><Candidates /></ProtectedRoute>
             } />
           </Routes>
         </Router>
