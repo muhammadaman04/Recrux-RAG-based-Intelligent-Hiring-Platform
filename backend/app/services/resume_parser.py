@@ -69,13 +69,27 @@ class ResumeParser:
             "certifications": ["cert1", "cert2", ...]
         }}
         
-        Important:
-        - If a field is not found, use null or empty array
-        - For experience_years, calculate total years from work history
-        - Extract ALL technical skills mentioned
-        - Be accurate with names and dates
+        CRITICAL EXTRACTION RULES:
+        1. NAME: Extract the full name as it appears, with proper spacing. 
+           - CORRECT: "Ahmed Ali Khan" or "Muhammad Aman"
+           - WRONG: "A H M E D  A L I  K H A N" or "AHMED ALI KHAN"
+           - If name has spaces between each letter, remove them and format properly
         
-        Return ONLY the JSON object, no additional text.
+        2. EMAIL: Extract email address exactly as written, without any special characters or symbols.
+           - CORRECT: "amanmuhammed0987@gmail.com"
+           - WRONG: "envel⌢peamanmuhammed0987@gmail.com" or "📧amanmuhammed0987@gmail.com"
+           - Remove any icons, symbols, or decorative characters before/after email
+        
+        3. PHONE: Extract phone number with proper formatting
+           - Remove any icons or symbols
+           - Keep only numbers and standard separators (+ - () space)
+        
+        4. If a field is not found, use null or empty array
+        5. For experience_years, calculate total years from work history
+        6. Extract ALL technical skills mentioned
+        7. Be accurate with names and dates
+        
+        Return ONLY the JSON object, no additional text or explanations.
         """
         
         try:
