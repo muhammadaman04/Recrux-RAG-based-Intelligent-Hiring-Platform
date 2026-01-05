@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, jobs, dashboard, candidates
+from app.routers import auth, jobs, dashboard, candidates, talent_pool_search
 from app.config.settings import settings
 from app.config.logging_config import logger
 
@@ -24,6 +24,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(jobs.router, prefix="/api/jobs", tags=["Jobs"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(candidates.router, prefix="/api/candidates", tags=["Candidates"])
+app.include_router(talent_pool_search.router, prefix="/api/talent-pool", tags=["Talent Pool Search"])
 
 @app.on_event("startup")
 async def startup_event():

@@ -11,6 +11,7 @@ import CreateJob from './pages/CreateJob'
 import EditJob from './pages/EditJob'
 import UploadResumes from './pages/UploadResumes'
 import Candidates from './pages/Candidates'
+import TalentPool from './pages/TalentPool'
 import './index.css'
 
 function App() {
@@ -45,6 +46,10 @@ function App() {
 
             <Route path="/jobs/:jobId/candidates" element={
               <ProtectedRoute><Candidates /></ProtectedRoute>
+            } />
+
+            <Route path="/talent-pool" element={
+              <ProtectedRoute><TalentPool /></ProtectedRoute>
             } />
           </Routes>
         </Router>

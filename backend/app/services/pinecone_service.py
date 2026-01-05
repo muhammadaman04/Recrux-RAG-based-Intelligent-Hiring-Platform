@@ -142,6 +142,52 @@ class PineconeService:
             logger.error(f"❌ Pinecone delete failed: {e}")
             return False
     
+    def search_resumes(
+        self, 
+        query_embedding: list, 
+        top_k: int = 20,
+        filter_dict: dict = None
+    ) -> list:
+        """
+        Search for similar resumes using vector similarity
+        
+        Args:
+            query_embedding: The query vector (384-dim)
+            top_k: Number of results to return
+            filter_dict: Metadata filters (e.g., {"tenant_id": 5})
+        
+        Returns:
+            List of matches with id, score, and metadata
+        """
+        if not self.enabled:
+            logger.warning("Pinecone not enabled, returning empty results")
+            return []
+
+        try:
+            # Query Pinecone
+            results = self.index.query(
+                vector=query_embedding,
+                top_k=top_k,
+                filter=filter_dict,
+                include_metadata=True
+            )
+            
+            # Format results
+            matches = []
+            for match in results.matches:
+                matches.append({
+                    "id": match.id,
+                    "score": match.score,
+                    "metadata": match.metadata
+                })
+            
+            logger.info(f"✅ Found {len(matches)} matches in Pinecone")
+            return matches
+            
+        except Exception as e:
+            logger.error(f"❌ Pinecone search failed: {e}")
+            return []
+    
     def get_stats(self) -> Dict:
         """Get index statistics"""
         if not self.enabled:

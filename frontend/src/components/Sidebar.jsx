@@ -8,6 +8,7 @@ const Sidebar = () => {
     const navigation = [
         { name: 'Dashboard', href: '/dashboard', icon: '📊' },
         { name: 'Jobs', href: '/jobs', icon: '💼' },
+        { name: 'Talent Pool', href: '/talent-pool', icon: '🔍' },
     ]
 
     return (
@@ -52,8 +53,8 @@ const Sidebar = () => {
                             key={item.name}
                             to={item.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-primary-50 text-primary-600 font-semibold'
-                                    : 'text-gray-700 hover:bg-gray-50'
+                                ? 'bg-primary-50 text-primary-600 font-semibold'
+                                : 'text-gray-700 hover:bg-gray-50'
                                 }`}
                             title={isCollapsed ? item.name : ''}
                         >
